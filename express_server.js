@@ -24,6 +24,7 @@ app.get('/urls', (req, res) => {
   res.render('urls_index', templateVars);
 });
 
+//add shortURL and corresponding longURL to urlDatabase object and responds with redirection to /urls/:shortURL
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
@@ -37,6 +38,11 @@ app.get('/urls/new', (req, res) => {
 app.get('/urls/:shortURL', (req, res) => {
   const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render('urls_show', templateVars);
+});
+
+app.get("/u/:shortURL", (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
 });
 
 function generateRandomString() {
