@@ -15,6 +15,20 @@ const urlDatabase = {
 
 const users = {};
 
+function generateRandomString() {
+  return Math.random().toString(36).substring(2,7);
+}
+
+function emailLookup(email, usersDatabase) {
+
+  for (const userId in usersDatabase) {
+    if (usersDatabase[userId].email === email) {
+      return true;
+    }
+  }
+    return false;
+}
+
 app.get('/', (req, res) => {
   res.send("Hello!");
 });
@@ -24,8 +38,8 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const user = req.cookies['user_id'];
-  const templateVars = { user: users[user], urls : urlDatabase };
+  const userId = req.cookies['user_id'];
+  const templateVars = { user: users[userId], urls : urlDatabase };
   res.render('urls_index', templateVars);
 });
 
@@ -37,14 +51,14 @@ app.post('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  const user = req.cookies['user_id'];
-  const templateVars = { user: users[user] };
+  const userId = req.cookies['user_id'];
+  const templateVars = { user: users[userId] };
   res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const user = req.cookies['user_id'];
-  const templateVars = { user: users[user], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const userId = req.cookies['user_id'];
+  const templateVars = { user: users[userId], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render('urls_show', templateVars);
 });
 
@@ -77,14 +91,21 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  const user = req.cookies['user_id'];
-  const templateVars = { user: users[user] };
+  const userId = req.cookies['user_id'];
+  const templateVars = { user: users[userId] };
   res.render('register', templateVars);
 });
 
 app.post('/register', (req, res) => {
-  const userId = generateRandomString();
   const { email, password } = req.body;
+  if (!email || !password) {
+    res.send(res.statusCode = 400);
+  };
+  const emailFound = emailLookup(email, users);
+  if (emailFound) {
+    res.send(res.statusCode = 400);
+  }
+  const userId = generateRandomString();
   const newUser = {
     userId,
     email,
@@ -95,9 +116,7 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-function generateRandomString() {
-  return Math.random().toString(36).substring(2,7);
-}
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
