@@ -45,6 +45,10 @@ app.get('/urls', (req, res) => {
 
 //add shortURL and corresponding longURL to urlDatabase object and responds with redirection to /urls/:shortURL
 app.post('/urls', (req, res) => {
+  const userId = req.cookies['user_id'];
+  if (!userId) {
+   res.send("Please login first!");
+  }
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL;
   res.redirect(`/urls/${shortURL}`);
@@ -52,8 +56,12 @@ app.post('/urls', (req, res) => {
 
 app.get('/urls/new', (req, res) => {
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId] };
-  res.render('urls_new', templateVars);
+  if (!userId) {
+    res.redirect('/login');
+  } else {
+    const templateVars = { user: users[userId] };
+    res.render('urls_new', templateVars);
+  }
 });
 
 app.get('/urls/:shortURL', (req, res) => {
