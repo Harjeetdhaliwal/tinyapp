@@ -15,19 +15,19 @@ const urlDatabase = {
 
 const users = {};
 
-function generateRandomString() {
+const generateRandomString = () => {
   return Math.random().toString(36).substring(2,7);
-}
+};
 
-function emailLookup(email, usersDatabase) {
-
+const emailLookup = (email, usersDatabase) => {
   for (const userId in usersDatabase) {
     if (usersDatabase[userId].email === email) {
-      return true;
+      return usersDatabase[userId];
     }
   }
-    return false;
-}
+  return false;
+};
+
 
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -80,36 +80,47 @@ app.post('/urls/:id', (req, res) => {
   res.redirect('/urls');
 });
 
+//Display the login form
 app.get('/login', (req, res) => {
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId] };
-  res.render('login',templateVars);
+  const templateVars = { user: users[userId] }
+  res.render('login', templateVars);
 });
 
 app.post('/login', (req, res) => {
-  res.cookie('username',req.body.username);
-  res.redirect('/urls');
+  const { email, password } = req.body;
+  const userId = emailLookup(email, users);
+  console.log(userId.password);
+
+  if (userId && userId.password === password) {
+    res.cookie("user_id", userId.userId);
+    res.redirect('/urls');
+  } else {
+    res.sendStatus(403);
+  }
 });
 
 app.post('/logout', (req, res) => {
-  res.clearCookie('username');
-  res.redirect('/urls');
+  res.clearCookie('user_id');
+  res.redirect('/login');
 });
 
+//Display the register form
 app.get('/register', (req, res) => {
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId] };
+  const templateVars = { user: users[userId] }
   res.render('register', templateVars);
 });
+
 
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    res.send(res.statusCode = 400);
+    res.send(res.sendStatus(400));
   };
   const emailFound = emailLookup(email, users);
   if (emailFound) {
-    res.send(res.statusCode = 400);
+    return res.send(res.sendStatus(400));
   }
   const userId = generateRandomString();
   const newUser = {
@@ -121,7 +132,6 @@ app.post('/register', (req, res) => {
   res.cookie("user_id", userId);
   res.redirect('/urls');
 });
-
 
 
 app.listen(PORT, () => {
