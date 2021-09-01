@@ -13,9 +13,7 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-const users = {
-
-};
+const users = {};
 
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -26,7 +24,8 @@ app.get('/urls.json', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  const templateVars = { username: req.cookies['username'], urls : urlDatabase };
+  const user = req.cookies['user_id'];
+  const templateVars = { user: users[user], urls : urlDatabase };
   res.render('urls_index', templateVars);
 });
 
@@ -38,12 +37,14 @@ app.post('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
-  const templateVars = { username: req.cookies['username'] };
+  const user = req.cookies['user_id'];
+  const templateVars = { user: users[user] };
   res.render('urls_new', templateVars);
 });
 
 app.get('/urls/:shortURL', (req, res) => {
-  const templateVars = { username: req.cookies['username'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const user = req.cookies['user_id'];
+  const templateVars = { user: users[user], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
   res.render('urls_show', templateVars);
 });
 
@@ -76,7 +77,8 @@ app.post('/logout', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  const templateVars = { username: req.cookies['username'] };
+  const user = req.cookies['user_id'];
+  const templateVars = { user: users[user] };
   res.render('register', templateVars);
 });
 
