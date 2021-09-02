@@ -38,6 +38,20 @@ const emailLookup = (email, usersDatabase) => {
   return false;
 };
 
+const urlsForUser = (id, database) => {
+  const userspecificURLDatabase = {};
+
+  for (let url in database) {
+    if(database[url]['userID'] === id) {
+     userspecificURLDatabase[url] = {};
+     userspecificURLDatabase[url]['longURL'] = database[url]['longURL'];
+     userspecificURLDatabase[url]['userID'] = database[url]['userID'] 
+    }
+  }
+
+  return userspecificURLDatabase;
+};
+
 
 app.get('/', (req, res) => {
   res.send("Hello!");
@@ -49,7 +63,13 @@ app.get('/urls.json', (req, res) => {
 
 app.get('/urls', (req, res) => {
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId], urls : urlDatabase };
+  if (!userId) {
+    res.status(400);
+    res.send("Please login or register first");
+  }
+
+  const userspecificURLDatabase = urlsForUser(userId, urlDatabase);
+  const templateVars = { user: users[userId], urls : userspecificURLDatabase };
   res.render('urls_index', templateVars);
 });
 
@@ -76,10 +96,32 @@ app.get('/urls/new', (req, res) => {
 });
 
 app.get('/urls/:shortURL', (req, res) => {
+  const shortURL = req.params.shortURL;
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
+  if (!userId) {
+    res.send("Please login first!");
+  }
+  if(urlDatabase[shortURL]['userID'] !== userId) {
+    res.send("This is not your url");
+  }
+
+  const templateVars = { user: users[userId], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL, userID: urlDatabase[req.params.shortURL].userId};
   res.render('urls_show', templateVars);
 });
+
+app.post('/urls/:id', (req, res) => {
+  const shortURL = req.params.id;
+  const userId = req.cookies['user_id'];
+  if(!userId || urlDatabase[shortURL].userID !== userId) {
+    res.sendStatus(400);
+    return res.send("Unauthorized action");
+  }
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL].longURL = longURL
+  urlDatabase[shortURL].userID = req.cookies['user_id'];
+  res.redirect('/urls');
+});
+
 
 app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
@@ -89,22 +131,20 @@ app.get('/u/:shortURL', (req, res) => {
     const longURL = urlDatabase[shortURL].longURL;
     res.redirect(longURL);
   }
-  
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
+  const userId = req.cookies['user_id'];
+  if(!userId || urlDatabase[shortURL].userID !== userId) {
+    res.sendStatus(400);
+    return res.send("Unauthorized action");
+  }
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 
-app.post('/urls/:id', (req, res) => {
-  const shortURL = req.params.id;
-  const longURL = req.body.longURL;
-  urlDatabase[shortURL].longURL = longURL
-  //urlDatabase[shortURL].userID = req.cookies['user_id'];
-  res.redirect('/urls');
-});
+
 
 //Display the login form
 app.get('/login', (req, res) => {
