@@ -9,8 +9,18 @@ const PORT = 8080;
 app.set('view engine', 'ejs');
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  'b6UTxQ': {
+    longURL: 'https://www.tsn.ca',
+    userID: 'aJ48lW'
+  },
+  'b2xVn2': {
+    longURL: 'http://www.lighthouselabs.ca',
+    userID: 'aJ48lW'
+  },
+  '9sm5xK':{
+    longURL: "https://www.google.ca",
+    userID: 'aJ48lW'
+  }
 };
 
 const users = {};
@@ -50,7 +60,8 @@ app.post('/urls', (req, res) => {
    res.send("Please login first!");
   }
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL;
+  const longURL = req.body.longURL;
+  urlDatabase[shortURL] = { longURL, userID: userId};
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -66,13 +77,19 @@ app.get('/urls/new', (req, res) => {
 
 app.get('/urls/:shortURL', (req, res) => {
   const userId = req.cookies['user_id'];
-  const templateVars = { user: users[userId], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL] };
+  const templateVars = { user: users[userId], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL].longURL };
   res.render('urls_show', templateVars);
 });
 
 app.get('/u/:shortURL', (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL];
-  res.redirect(longURL);
+  const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    res.sendStatus(400);
+  } else {
+    const longURL = urlDatabase[shortURL].longURL;
+    res.redirect(longURL);
+  }
+  
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
@@ -84,7 +101,8 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 app.post('/urls/:id', (req, res) => {
   const shortURL = req.params.id;
   const longURL = req.body.longURL;
-  urlDatabase[shortURL] = longURL;
+  urlDatabase[shortURL].longURL = longURL
+  //urlDatabase[shortURL].userID = req.cookies['user_id'];
   res.redirect('/urls');
 });
 
@@ -98,7 +116,6 @@ app.get('/login', (req, res) => {
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
   const userId = emailLookup(email, users);
-  console.log(userId.password);
 
   if (userId && userId.password === password) {
     res.cookie("user_id", userId.userId);
