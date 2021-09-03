@@ -17,10 +17,10 @@ const urlsForUser = (id, database) => {
   const userspecificURLDatabase = {};
 
   for (let url in database) {
-    if(database[url]['userID'] === id) {
-     userspecificURLDatabase[url] = {};
-     userspecificURLDatabase[url]['longURL'] = database[url]['longURL'];
-     userspecificURLDatabase[url]['userID'] = database[url]['userID'] 
+    if (database[url]['userID'] === id) {
+      userspecificURLDatabase[url] = {};
+      userspecificURLDatabase[url]['longURL'] = database[url]['longURL'];
+      userspecificURLDatabase[url]['userID'] = database[url]['userID'];
     }
   }
 
@@ -31,4 +31,4 @@ module.exports = {
   getUserByEmail,
   generateRandomString,
   urlsForUser
-}
+};

@@ -27,7 +27,7 @@ const users = {
   'aJ48lW': {
     userID: 'aJ48lW',
     email: 'abc@d.com',
-    password: 'test' //this password won't work cause I am saving password after hasing them at line 181. 
+    password: 'test'//this password won't work cause I am saving password after hasing them at line 181.
     //This is just to show the structure of the users object.
   }
 };
@@ -61,13 +61,14 @@ app.get('/urls', (req, res) => {
 app.post('/urls', (req, res) => {
   const userId = req.session.user_id;
   if (!userId) {
-   res.send("Please login first!");
+    res.send("Please login first!");
   }
   const shortURL = generateRandomString();
   const longURL = req.body.longURL;
   urlDatabase[shortURL] = { longURL, userID: userId};
   res.redirect(`/urls/${shortURL}`);
 });
+
 
 app.get('/urls/new', (req, res) => {
   const userId = req.session.user_id;
@@ -79,6 +80,7 @@ app.get('/urls/new', (req, res) => {
   }
 });
 
+
 // GET /urls/:id
 app.get('/urls/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
@@ -88,8 +90,8 @@ app.get('/urls/:shortURL', (req, res) => {
   }
   if (!urlDatabase[shortURL]) {
     return res.status(400).send("Incorrect short URL!");
-  } 
-  if(urlDatabase[shortURL]['userID'] !== userId) {
+  }
+  if (urlDatabase[shortURL]['userID'] !== userId) {
     return res.send("This is not your url");
   }
 
@@ -104,13 +106,12 @@ app.post('/urls/:id', (req, res) => {
   const userId = req.session.user_id;
   if (!userId) {
     return res.status(403).send("Please login first");
-  } 
+  }
   if (urlDatabase[shortURL].userID !== userId) {
     return res.sendStatus(400).send("Unauthorized action! This is not your URL!");
   }
   const longURL = req.body.longURL;
-  urlDatabase[shortURL].longURL = longURL
-  //urlDatabase[shortURL].userID = req.session.user_id;
+  urlDatabase[shortURL].longURL = longURL;
   res.redirect('/urls');
 });
 
@@ -119,17 +120,17 @@ app.get('/u/:shortURL', (req, res) => {
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) {
     return res.status(400).send("ShortURL does not exists!");
-  } 
-    const longURL = urlDatabase[shortURL].longURL;
-    res.redirect(longURL);
+  }
+  const longURL = urlDatabase[shortURL].longURL;
+  res.redirect(longURL);
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
   const shortURL = req.params.shortURL;
   const userId = req.session.user_id;
-  if (!userId ) {
-    return res.status(403).send("Please login to delete the URL!")
-  } 
+  if (!userId) {
+    return res.status(403).send("Please login to delete the URL!");
+  }
   if (urlDatabase[shortURL].userID !== userId) {
     res.sendStatus(400);
     return res.send("Unauthorized action!! This URL is not created by you!");
@@ -144,7 +145,7 @@ app.get('/login', (req, res) => {
   if (userId) {
     return res.redirect('/urls');
   }
-  const templateVars = { user: users[userId] }
+  const templateVars = { user: users[userId] };
   res.render('login', templateVars);
 });
 
@@ -156,10 +157,9 @@ app.post('/login', (req, res) => {
   if (userId && bcrypt.compareSync(password, userId.password)) {
     req.session.user_id = userId.userId;
     return res.redirect('/urls');
-  } 
-
+  }
   if (!email || !password) {
-    return res.send("Please enter both email and password!!")
+    return res.send("Please enter both email and password!!");
   }
 
   res.send("Please enter correct email and password !");
@@ -177,7 +177,7 @@ app.get('/register', (req, res) => {
   if (userId) {
     return res.redirect('/urls');
   }
-  const templateVars = { user: users[userId] }
+  const templateVars = { user: users[userId] };
   res.render('register', templateVars);
 });
 
@@ -186,7 +186,7 @@ app.post('/register', (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
     res.send(res.send("Please enter both email and password!"));
-  };
+  }
 
   const emailFound = getUserByEmail(email, users);
   if (emailFound) {
@@ -202,7 +202,6 @@ app.post('/register', (req, res) => {
 
   users[userId] = newUser;
   req.session.user_id = userId;
-  console.log(bcrypt.hashSync(password, 10));
   res.redirect('/urls');
 });
 
